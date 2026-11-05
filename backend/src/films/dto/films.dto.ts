@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class FilmDto {
+export class GetFilmDto {
   @ApiProperty({
     format: 'uuid',
     example: 'd290f1ee-6c54-4b01-90e6-d701748f0851',
@@ -32,44 +32,10 @@ export class FilmDto {
   cover: string;
 }
 
-export class ScheduleDto {
-  @ApiProperty({
-    format: 'uuid',
-    example: '95ab4a20-9555-4a06-bfac-184b8c53fe70',
-  })
-  id: string;
-
-  @ApiProperty({ format: 'date-time', example: '2023-05-29T10:30:00.001Z' })
-  daytime: string;
-
-  @ApiProperty({ example: 2 })
-  hall: number;
-
-  @ApiProperty({ example: 5 })
-  rows: number;
-
-  @ApiProperty({ example: 10 })
-  seats: number;
-
-  @ApiProperty({ example: 350 })
-  price: number;
-
-  @ApiProperty({ type: [String], example: ['1:2'] })
-  taken: string[];
-}
-
 export class FilmsResponseDto {
   @ApiProperty({ minimum: 0, example: 1 })
   total: number;
 
-  @ApiProperty({ type: [FilmDto] })
-  items: FilmDto[];
-}
-
-export class ScheduleResponseDto {
-  @ApiProperty({ minimum: 0, example: 1 })
-  total: number;
-
-  @ApiProperty({ type: [ScheduleDto] })
-  items: ScheduleDto[];
+  @ApiProperty({ type: [GetFilmDto] })
+  items: GetFilmDto[];
 }
