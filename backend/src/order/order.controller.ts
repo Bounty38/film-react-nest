@@ -1,26 +1,30 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UseFilters } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiConflictResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { OrderService } from './order.service';
+import { BadRequestExceptionFilter } from '../filters/bad-request-exception.filter';
 import { CreateOrderDto, OrderResponseDto } from './dto/order.dto';
+import { OrderService } from './order.service';
 
 @ApiTags('order')
+@UseFilters(BadRequestExceptionFilter)
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
+  @HttpCode(200)
   @Post()
-  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Купить билеты' })
   @ApiOkResponse({ type: OrderResponseDto })
-  @ApiBadRequestResponse({ description: 'Некорректный запрос' })
-  @ApiConflictResponse({ description: 'Место уже занято' })
-  createOrder(@Body() order: CreateOrderDto): Promise<OrderResponseDto> {
-    return this.orderService.create(order);
+  @ApiBadRequestResponse({
+    description: 'Некорректный запрос или место занято',
+  })
+  @ApiNotFoundResponse({ description: 'Фильм или сеанс не найден' })
+  create(@Body() orders: CreateOrderDto) {
+    return this.orderService.create(orders);
   }
 }

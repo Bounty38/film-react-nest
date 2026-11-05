@@ -1,12 +1,14 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import {
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { FilmsService } from './films.service';
-import { FilmsResponseDto, ScheduleResponseDto } from './dto/films.dto';
+import { FilmsResponseDto } from './dto/films.dto';
+import { ScheduleResponseDto } from '../schedule/dto/schedule.dto';
 
 @ApiTags('films')
 @Controller('films')
@@ -16,7 +18,7 @@ export class FilmsController {
   @Get()
   @ApiOperation({ summary: 'Список фильмов, доступных на этой неделе' })
   @ApiOkResponse({ type: FilmsResponseDto })
-  getFilms(): Promise<FilmsResponseDto> {
+  findAll() {
     return this.filmsService.findAll();
   }
 
@@ -29,7 +31,8 @@ export class FilmsController {
     example: 'd290f1ee-6c54-4b01-90e6-d701748f0851',
   })
   @ApiOkResponse({ type: ScheduleResponseDto })
-  getFilmSchedule(@Param('id') id: string): Promise<ScheduleResponseDto> {
-    return this.filmsService.findSchedule(id);
+  @ApiNotFoundResponse({ description: 'Фильм не найден' })
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.filmsService.findOne(id);
   }
 }
