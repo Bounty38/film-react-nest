@@ -1,15 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { randomUUID } from 'node:crypto';
 import { Model } from 'mongoose';
 
 import { Film, FilmDocument } from '../films/schemas/film.schema';
 import { FilmDto, ScheduleDto } from '../films/dto/films.dto';
-import {
-  CreateOrderDto,
-  OrderedTicketDto,
-  OrderResponseDto,
-} from '../order/dto/order.dto';
 import { FilmsRepository } from './films.repository';
 
 @Injectable()
@@ -37,7 +31,7 @@ export class MongoFilmsRepository implements FilmsRepository {
   }
 
   // Атомарно занимает место: обновление сработает, только если место свободно.
-  private async reserveSeat(
+  async reserveSeat(
     filmId: string,
     sessionId: string,
     seatKey: string,
@@ -50,19 +44,5 @@ export class MongoFilmsRepository implements FilmsRepository {
       { $addToSet: { 'schedule.$.taken': seatKey } },
     );
     return result.modifiedCount === 1;
-  }
-
-  async createOrder(order: CreateOrderDto): Promise<OrderResponseDto> {
-    const items: OrderedTicketDto[] = [];
-
-    for (const ticket of order.tickets) {
-      const seatKey = `${ticket.row}:${ticket.seat}`;
-      if (!(await this.reserveSeat(ticket.film, ticket.session, seatKey))) {
-        throw new ConflictException('Место уже занято');
-      }
-      items.push({ ...ticket, id: randomUUID() });
-    }
-
-    return { total: items.length, items };
   }
 }

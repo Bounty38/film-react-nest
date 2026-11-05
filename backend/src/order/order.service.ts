@@ -3,8 +3,13 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { MongoFilmsRepository } from '../repository/mongo-films.repository';
-import { CreateOrderDto, OrderResponseDto } from './dto/order.dto';
+import {
+  CreateOrderDto,
+  OrderedTicketDto,
+  OrderResponseDto,
+} from './dto/order.dto';
 
 @Injectable()
 export class OrderService {
@@ -48,6 +53,22 @@ export class OrderService {
       }
     }
 
-    return this.filmsRepository.createOrder(order);
+    // Репозиторий только сообщает, удалось ли занять место;
+    // HTTP-ошибку выбрасывает сервис.
+    const items: OrderedTicketDto[] = [];
+    for (const ticket of order.tickets) {
+      const seatKey = `${ticket.row}:${ticket.seat}`;
+      const reserved = await this.filmsRepository.reserveSeat(
+        ticket.film,
+        ticket.session,
+        seatKey,
+      );
+      if (!reserved) {
+        throw new ConflictException('Место уже занято');
+      }
+      items.push({ ...ticket, id: randomUUID() });
+    }
+
+    return { total: items.length, items };
   }
 }
